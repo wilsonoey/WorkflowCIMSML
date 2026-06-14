@@ -67,7 +67,12 @@ def main():
     if tracking_uri == "file:./mlruns":
         tracking_uri = os.environ.get("MLFLOW_TRACKING_URI", "sqlite:///mlruns.db")
     mlflow.set_tracking_uri(tracking_uri)
-    mlflow.set_experiment("vaccination-basic-experiment")
+
+    # Jika MLFLOW_RUN_ID sudah ada di env (dari `mlflow run .`), jangan override
+    # experiment karena run sudah dibuat di bawah experiment yang benar.
+    run_id_from_env = os.environ.get("MLFLOW_RUN_ID")
+    if not run_id_from_env:
+        mlflow.set_experiment("vaccination-basic-experiment")
 
     # Resolve train/test paths with fallbacks
     train_fallbacks = [
@@ -113,11 +118,12 @@ def main():
     # Enable MLflow Autologging
     mlflow.sklearn.autolog()
 
-    # Jika sudah ada active run (dari `mlflow run .`), gunakan langsung.
-    # Jika tidak (dijalankan langsung), buat run baru.
-    active = mlflow.active_run()
-    ctx = mlflow.start_run(run_id=active.info.run_id) if active else \
-        mlflow.start_run(run_name="basic_ridge_training")
+    # `mlflow run .` set MLFLOW_RUN_ID di env — bukan Python-level active run.
+    # Harus dibaca langsung dari env, bukan via mlflow.active_run().
+    if run_id_from_env:
+        ctx = mlflow.start_run(run_id=run_id_from_env)
+    else:
+        ctx = mlflow.start_run(run_name="basic_ridge_training")
     with ctx as run:
         model = Ridge(alpha=1.0)
         model.fit(X_train, y_train)
