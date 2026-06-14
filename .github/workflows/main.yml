@@ -53,7 +53,6 @@ jobs:
           cd MLProject
           mlflow run . --env-manager=local \
             --entry-point main \
-            --experiment-name vaccination-basic-experiment \
             -P train_csv=country_vaccinations_train.csv \
             -P test_csv=country_vaccinations_test.csv
 
@@ -84,16 +83,15 @@ jobs:
             exit 1
           fi
 
-      # ─── 9. Push Docker Image ke Docker Hub ────────────────────────────────
+      # ─── 9. Login ke Docker Hub ────────────────────────────────────────────
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # ─── 10. Push Docker Image ke Docker Hub ───────────────────────────────
       - name: Push Docker Image to Docker Hub
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: |
-          if [ -n "$DOCKER_USERNAME" ] && [ -n "$DOCKER_PASSWORD" ]; then
-            echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-            docker push wilsonoey/smsml-model
-            echo "Docker image pushed: wilsonoey/smsml-model"
-          else
-            echo "⚠ DOCKER_USERNAME/DOCKER_PASSWORD secrets not set. Skipping push."
-          fi
+          docker push wilsonoey/smsml-model
+          echo "Docker image pushed: wilsonoey/smsml-model"
