@@ -53,6 +53,7 @@ jobs:
           cd MLProject
           mlflow run . --env-manager=local \
             --entry-point main \
+            --experiment-name vaccination-basic-experiment \
             -P train_csv=country_vaccinations_train.csv \
             -P test_csv=country_vaccinations_test.csv
 
