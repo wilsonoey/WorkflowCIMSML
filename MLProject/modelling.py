@@ -113,7 +113,12 @@ def main():
     # Enable MLflow Autologging
     mlflow.sklearn.autolog()
 
-    with mlflow.start_run(run_name="basic_ridge_training") as run:
+    # Jika sudah ada active run (dari `mlflow run .`), gunakan langsung.
+    # Jika tidak (dijalankan langsung), buat run baru.
+    active = mlflow.active_run()
+    ctx = mlflow.start_run(run_id=active.info.run_id) if active else \
+        mlflow.start_run(run_name="basic_ridge_training")
+    with ctx as run:
         model = Ridge(alpha=1.0)
         model.fit(X_train, y_train)
 
