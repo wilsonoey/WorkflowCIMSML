@@ -56,7 +56,7 @@ jobs:
           if [ -d "MLProject/models/latest" ]; then
             mlflow models build-docker \
               -m MLProject/models/latest \
-              -n wilson_oey/smsml-model \
+              -n wilsonoey/smsml-model \
               --enable-mlserver
             echo "Docker image built successfully."
           else
